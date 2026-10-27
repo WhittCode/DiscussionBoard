@@ -1,0 +1,52 @@
+﻿@page "/Discussion/{threadId:int}"
+@model DiscussionBoard.Pages.Discussions.DetailsModel
+@{
+    ViewData["Title"] = Model.Thread.Title;
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Forums/Index">Forums</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Forums/Details" asp-route-id="@Model.Thread.ForumId">@Model.Thread.Forum?.Name</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Thread.Title</li>
+        </ol>
+    </nav>
+
+    <article class="card bg-light mb-4 shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title h2">@Model.Thread.Title</h1>
+            <p class="card-text border-top pt-3" style="white-space: pre-wrap;">@Model.Thread.Content</p>
+            <div class="text-muted small">
+                Started by <strong>@Model.Thread.ApplicationUser?.UserName</strong> on @Model.Thread.CreatedAt.ToLocalTime().ToString("g")
+            </div>
+        </div>
+    </article>
+
+    <h3 class="mb-3">Discussion Activity</h3>
+    <div class="mb-4">
+        @foreach (var rootNode in Model.PostTree)
+        {
+            <partial name="_PostTree" model="rootNode" />
+        }
+    </div>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="card p-3 shadow-sm">
+            <h5>Join the discussion</h5>
+            <form method="post" asp-page-handler="Reply" asp-route-threadId="@Model.Thread.Id">
+                <input type="hidden" asp-for="Input.ParentPostId" value="" />
+                <div class="mb-3">
+                    <textarea asp-for="Input.Content" class="form-control" rows="4" placeholder="Type your response here..." required></textarea>
+                    <span asp-validation-for="Input.Content" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Reply</button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">You must be logged in to participate in the conversation.</div>
+    }
+</div>

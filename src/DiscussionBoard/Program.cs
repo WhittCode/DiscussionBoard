@@ -5,6 +5,12 @@ using DiscussionBoard.Models;
 using DiscussionBoard.Services;
 using Serilog;
 using Serilog.Formatting.Compact;
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace DiscussionBoard
 {
@@ -14,7 +20,7 @@ namespace DiscussionBoard
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Get the location of the Logs folder for SeriLog
+
             string logPath = Path.Combine(builder.Environment.ContentRootPath, "Logs",  "discussionboard-.json");
 
             builder.Services.AddSerilog((services, configuration) => configuration
@@ -42,7 +48,13 @@ namespace DiscussionBoard
 
             builder.Services.AddSingleton<ILogReader, JsonLogReader>();
 
-            var app = builder.Build();
+            // 🛠️ FIX: Services must be registered BEFORE builder.Build() is executed!
+            // Also matching your concrete types since ForumService doesn't use an interface abstraction in this starter kit
+            builder.Services.AddScoped<ForumService>();
+            builder.Services.AddScoped<IDiscussionThreadService, DiscussionThreadService>();
+            builder.Services.AddScoped<IPostService, PostService>();
+
+            var app = builder.Build(); // 👈 The collection is locked right here!
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -52,8 +64,6 @@ namespace DiscussionBoard
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days.
-                // You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -73,3 +83,4 @@ namespace DiscussionBoard
         }
     }
 }
+

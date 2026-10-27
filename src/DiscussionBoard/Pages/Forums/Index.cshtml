@@ -1,7 +1,10 @@
 @page "/Forums/Index"
-@model ForumsModel
+@using DiscussionBoard.Pages.Forums
+@model IndexModel
 @{ ViewData["Title"] = "Forums"; }
+
 <h1>Forums</h1>
+
 @foreach (var forum in Model.Items)
 {
     <partial name="/Pages/Forums/_ForumCard.cshtml" model="forum" />
