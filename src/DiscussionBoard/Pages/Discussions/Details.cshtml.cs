@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -50,6 +50,12 @@ public class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostReplyAsync(int threadId)
     {
+        // The form is hidden from anonymous visitors, but the handler must enforce this too.
+        if (User.Identity?.IsAuthenticated != true) return Challenge();
+
+        var thread = await _threadService.GetAsync(threadId);
+        if (thread == null) return NotFound();
+
         var posts = await _postService.GetForThreadAsync(threadId);
 
         // Required by B4: Validate that any specified parent post belongs to the current discussion thread
@@ -63,8 +69,6 @@ public class DetailsModel : PageModel
 
         if (!ModelState.IsValid)
         {
-            var thread = await _threadService.GetAsync(threadId);
-            if (thread == null) return NotFound();
             Thread = thread;
 
             PostTree = PostTreeBuilder.Build(posts);
@@ -76,6 +80,7 @@ public class DetailsModel : PageModel
 
         var post = new Post
         {
+            Title = "Reply",
             Content = Input.Content,
             DiscussionThreadId = threadId,
             ParentPostId = Input.ParentPostId,

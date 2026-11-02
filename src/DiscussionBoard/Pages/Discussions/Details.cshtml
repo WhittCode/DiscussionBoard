@@ -1,4 +1,4 @@
-﻿@page "/Discussion/{threadId:int}"
+@page "/Discussion/{threadId:int}"
 @model DiscussionBoard.Pages.Discussions.DetailsModel
 @{
     ViewData["Title"] = Model.Thread.Title;
@@ -24,6 +24,7 @@
     </article>
 
     <h3 class="mb-3">Discussion Activity</h3>
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
     <div class="mb-4">
         @foreach (var rootNode in Model.PostTree)
         {
