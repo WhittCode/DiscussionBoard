@@ -20,7 +20,6 @@ namespace DiscussionBoard
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             string logPath = Path.Combine(builder.Environment.ContentRootPath, "Logs",  "discussionboard-.json");
 
             builder.Services.AddSerilog((services, configuration) => configuration
@@ -44,19 +43,31 @@ namespace DiscussionBoard
                     options.SignIn.RequireConfirmedAccount = !builder.Environment.IsDevelopment())
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            builder.Services.AddRazorPages();
+
+
+            builder.Services.AddRazorPages(options =>
+            {
+                options.Conventions.AuthorizeFolder("/Forum");
+                options.Conventions.AuthorizeFolder("/Forums");
+                options.Conventions.AuthorizeFolder("/Discussion");
+                options.Conventions.AuthorizeFolder("/Discussions");
+                options.Conventions.AuthorizePage("/MyProfile");
+
+                options.Conventions.AllowAnonymousToPage("/Index");
+                options.Conventions.AllowAnonymousToPage("/Privacy");
+            });
+
+
 
             builder.Services.AddSingleton<ILogReader, JsonLogReader>();
+            builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
-            // 🛠️ FIX: Services must be registered BEFORE builder.Build() is executed!
-            // Also matching your concrete types since ForumService doesn't use an interface abstraction in this starter kit
             builder.Services.AddScoped<ForumService>();
             builder.Services.AddScoped<IDiscussionThreadService, DiscussionThreadService>();
             builder.Services.AddScoped<IPostService, PostService>();
 
-            var app = builder.Build(); // 👈 The collection is locked right here!
+            var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -68,7 +79,6 @@ namespace DiscussionBoard
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseAuthentication();
@@ -83,4 +93,5 @@ namespace DiscussionBoard
         }
     }
 }
+
 

@@ -25,8 +25,16 @@ namespace DiscussionBoard.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AvatarId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -116,7 +124,7 @@ namespace DiscussionBoard.Data.Migrations
 
                     b.HasIndex("ForumId");
 
-                    b.ToTable("DiscussionThreads", (string)null);
+                    b.ToTable("DiscussionThreads");
                 });
 
             modelBuilder.Entity("DiscussionBoard.Models.Forum", b =>
@@ -140,7 +148,7 @@ namespace DiscussionBoard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Forums", (string)null);
+                    b.ToTable("Forums");
                 });
 
             modelBuilder.Entity("DiscussionBoard.Models.Post", b =>
@@ -183,7 +191,7 @@ namespace DiscussionBoard.Data.Migrations
 
                     b.HasIndex("ParentPostId");
 
-                    b.ToTable("Posts", (string)null);
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

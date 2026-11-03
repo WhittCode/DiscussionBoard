@@ -1,0 +1,59 @@
+﻿@page
+@model DiscussionBoard.Pages.MyProfileModel
+@using DiscussionBoard.Services
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container mt-4">
+    <h1>My Profile</h1>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.StatusMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Input.DisplayName" class="form-label font-weight-bold">Display Name</label>
+            <input asp-for="Input.DisplayName" class="form-control" />
+            <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label class="form-label font-weight-bold mb-2">Select Avatar</label>
+            <div class="row">
+                @foreach (var option in AvatarCatalog.Options)
+                {
+                    var controlId = $"avatar_choice_{option.Id}";
+                    <div class="col-6 col-sm-4 col-md-2 text-center mb-2">
+                        <div class="border rounded p-2 h-100">
+                            <!-- Input and Label are now explicitly paired via the unique controlId string -->
+                            <input type="radio" asp-for="Input.AvatarId" value="@option.Id" id="@controlId" class="mb-2" />
+                            <label for="@controlId" class="d-block cursor-pointer">
+                                <img src="@AvatarCatalog.ImagePath(option.Id)"
+                                     class="rounded-circle img-fluid d-block mx-auto mb-1"
+                                     alt="Avatar choice: @option.Id"
+                                     style="width: 25px; height: 25px; object-fit: cover;" />
+                                <span class="visually-hidden text-capitalize">@option.Id</span>
+                            </label>
+                        </div>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="Input.AvatarId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

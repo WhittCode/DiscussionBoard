@@ -1,17 +1,49 @@
 ﻿@model DiscussionBoard.Models.DiscussionThread
+@using DiscussionBoard.Services
 
-<div class="card mb-3 shadow-sm">
+@{
+    var authorName = string.IsNullOrWhiteSpace(Model.ApplicationUser?.DisplayName)
+        ? "Unconfigured User"
+        : Model.ApplicationUser.DisplayName;
+
+    var avatarPath = AvatarCatalog.ImagePath(Model.ApplicationUser?.AvatarId);
+}
+
+<article class="card mb-3 shadow-sm">
     <div class="card-body">
         <h5 class="card-title">
-            <a asp-page="/Discussions/Details" asp-route-threadId="@Model.Id" class="text-decoration-none">@Model.Title</a>
+            <a asp-page="/Discussions/Details"
+               asp-route-threadId="@Model.Id"
+               class="text-decoration-none">
+                @Model.Title
+            </a>
         </h5>
-        <p class="card-text text-truncate text-muted">@Model.Content</p>
+
+        <p class="card-text text-truncate text-muted">
+            @Model.Content
+        </p>
+
         <div class="d-flex justify-content-between align-items-center">
-            <small class="text-secondary">Posted by @(Model.ApplicationUser?.UserName ?? "Anonymous") on @Model.CreatedAt.ToString("g")</small>
+            <div class="d-flex align-items-center gap-2">
+                <img src="@avatarPath"
+                     alt="@authorName avatar"
+                     class="rounded-circle"
+                     style="width: 32px; height: 32px; object-fit: cover;" />
+
+                <small class="text-secondary">
+                    Posted by <strong>@authorName</strong>
+                    on @Model.CreatedAt.ToLocalTime().ToString("g")
+                </small>
+            </div>
+
             @if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == Model.ApplicationUserId)
             {
-                <a asp-page="/Discussions/Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">Edit Thread</a>
+                <a asp-page="/Discussions/Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-sm btn-outline-secondary">
+                    Edit Thread
+                </a>
             }
         </div>
     </div>
-</div>
+</article>
