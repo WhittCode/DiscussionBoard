@@ -1,60 +1,68 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using DiscussionBoard.Authorization;
+using DiscussionBoard.Models;
 using DiscussionBoard.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace DiscussionBoard.Pages.Discussions;
+namespace DiscussionBoard.Pages;
 
 [Authorize]
-public class EditModel : PageModel
+public class ThreadEditModel : PageModel
 {
     private readonly IDiscussionThreadService _threadService;
+    private readonly IApplicationAuthorizationService _authorizationService;
 
-    public EditModel(IDiscussionThreadService threadService) => _threadService = threadService;
-
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
-
-    [BindProperty(SupportsGet = true)]
-    public int Id { get; set; }
-
-    public class InputModel
+    public ThreadEditModel(
+        IDiscussionThreadService threadService,
+        IApplicationAuthorizationService authorizationService)
     {
-        [Required, StringLength(200, MinimumLength = 3)]
-        public string Title { get; set; } = string.Empty;
-
-        [Required, StringLength(10000, MinimumLength = 1)]
-        public string Content { get; set; } = string.Empty;
+        _threadService = threadService;
+        _authorizationService = authorizationService;
     }
 
-    public async Task<IActionResult> OnGetAsync()
+    [BindProperty]
+    public DiscussionEditViewModel Input { get; set; } = new();
+
+    public async Task<IActionResult> OnGetAsync(int threadId)
     {
-        var thread = await _threadService.GetAsync(Id);
-        if (thread == null) return NotFound();
+        var thread = await _threadService.GetAsync(threadId);
 
-        if (thread.ApplicationUserId != User.FindFirstValue(ClaimTypes.NameIdentifier)) return Forbid();
+        if (thread == null)
+            return NotFound();
 
-        Input.Title = thread.Title;
-        Input.Content = thread.Content;
+        if (!await _authorizationService.CanEditAsync(User, thread))
+            return Forbid();
+
+        Input = new DiscussionEditViewModel
+        {
+            Title = thread.Title,
+            Content = thread.Content
+        };
+
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(int threadId)
     {
-        if (!ModelState.IsValid) return Page();
+        var thread = await _threadService.GetAsync(threadId);
 
-        var thread = await _threadService.GetAsync(Id);
-        if (thread == null) return NotFound();
+        if (thread == null)
+            return NotFound();
 
-        if (thread.ApplicationUserId != User.FindFirstValue(ClaimTypes.NameIdentifier)) return Forbid();
+        if (!await _authorizationService.CanEditAsync(User, thread))
+            return Forbid();
+
+        if (!ModelState.IsValid)
+            return Page();
 
         thread.Title = Input.Title;
         thread.Content = Input.Content;
 
         await _threadService.UpdateAsync(thread);
-        return RedirectToPage("./Details", new { threadId = Id });
+
+        return RedirectToPage(
+            "/Discussions/Details",
+            new { threadId });
     }
 }

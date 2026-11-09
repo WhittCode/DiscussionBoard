@@ -1,0 +1,124 @@
+﻿
+@page
+@model DiscussionBoard.Pages.Admin.UsersModel
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container mt-4">
+    <h1>Manage Users</h1>
+
+    <p class="text-muted">
+        Select a registered user to manage their administrator permissions.
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="alert alert-info" role="alert">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Select a User</h5>
+        </div>
+
+        <div class="card-body">
+            <form method="post" asp-page-handler="SelectUser">
+                <div class="mb-3">
+                    <label asp-for="SelectedUserId" class="form-label">
+                        Registered Users
+                    </label>
+
+                    <select asp-for="SelectedUserId" class="form-select">
+                        <option value="">-- Select a user --</option>
+
+                        @foreach (var user in Model.Users)
+                        {
+                            <option value="@user.Id">
+                                @(string.IsNullOrWhiteSpace(user.DisplayName)
+                                    ? user.Email
+                                    : user.DisplayName + " (" + user.Email + ")")
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Select User
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.SelectedUser != null)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+
+            <div class="card-body">
+                <p>
+                    <strong>Display Name:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.SelectedUser.DisplayName)
+                        ? "Unconfigured User"
+                        : Model.SelectedUser.DisplayName)
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    @Model.SelectedUser.Email
+                </p>
+
+                <p>
+                    <strong>Current Role:</strong>
+
+                    @if (Model.SelectedUserIsAdmin)
+                    {
+                        <span class="badge bg-success">Administrator</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Regular User</span>
+                    }
+                </p>
+
+                <hr />
+
+                @if (Model.SelectedUserIsAdmin)
+                {
+                    <p>
+                        This user currently has administrator permissions.
+                    </p>
+
+                    <form method="post" asp-page-handler="Remove">
+                        <input type="hidden"
+                               asp-for="SelectedUserId" />
+
+                        <button type="submit" class="btn btn-danger">
+                            Remove Admin
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <p>
+                        This user does not currently have administrator permissions.
+                    </p>
+
+                    <form method="post" asp-page-handler="Add">
+                        <input type="hidden"
+                               asp-for="SelectedUserId" />
+
+                        <button type="submit" class="btn btn-success">
+                            Add Admin
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    }
+</div>
