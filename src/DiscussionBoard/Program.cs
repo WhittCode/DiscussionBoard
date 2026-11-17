@@ -47,14 +47,14 @@ namespace DiscussionBoard
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            // Enable ASP.NET Core Identity roles.
+
             builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
                     options.SignIn.RequireConfirmedAccount =
                         !builder.Environment.IsDevelopment())
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            // Register the shared owner-or-admin authorization policy.
+
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy(
@@ -67,7 +67,7 @@ namespace DiscussionBoard
                     });
             });
 
-            // Register the authorization handler.
+
             builder.Services.AddScoped<
                 Microsoft.AspNetCore.Authorization.IAuthorizationHandler,
                 IsOwnerOrAdminHandler>();
@@ -84,7 +84,6 @@ namespace DiscussionBoard
                 options.Conventions.AllowAnonymousToPage("/Privacy");
             });
 
-
             builder.Services.AddSingleton<ILogReader, JsonLogReader>();
             builder.Services.AddScoped<IUserProfileService, UserProfileService>();
             builder.Services.AddScoped<ForumService>();
@@ -95,7 +94,6 @@ namespace DiscussionBoard
             builder.Services.AddScoped<PostService>();
             builder.Services.AddScoped<IPostService>(
                 services => services.GetRequiredService<PostService>());
-
 
             builder.Services.AddScoped<
                 IApplicationAuthorizationService,
@@ -115,6 +113,24 @@ namespace DiscussionBoard
 
             app.UseHttpsRedirection();
             app.UseRouting();
+
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["Content-Security-Policy"] =
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline'; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data:; " +
+                    "font-src 'self' data:; " +
+                    "connect-src 'self'; " +
+                    "object-src 'none'; " +
+                    "base-uri 'self'; " +
+                    "form-action 'self'; " +
+                    "frame-ancestors 'none'";
+
+                await next();
+            });
 
             app.UseAuthentication();
             app.UseAuthorization();
